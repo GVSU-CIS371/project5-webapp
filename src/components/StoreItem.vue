@@ -1,6 +1,18 @@
 <template>
   <v-card class="ma-4" outlined>
-    <v-img :src="product.image" alt="Product Image" height="200"></v-img>
+    <!-- Image -->
+    <template v-if="!editMode">
+      <v-img :src="product.image" alt="Product Image" height="200"></v-img>
+    </template>
+    <template v-else>
+      <v-text-field
+        v-model="editedProduct.image"
+        label="Image URL"
+        outlined
+      ></v-text-field>
+    </template>
+
+    <!-- Name -->
     <v-card-title v-if="!editMode">{{ product.name }}</v-card-title>
     <v-text-field
       v-else
@@ -8,6 +20,8 @@
       label="Product Name"
       outlined
     ></v-text-field>
+
+    <!-- Category -->
     <v-card-subtitle v-if="!editMode">{{ product.category }}</v-card-subtitle>
     <v-text-field
       v-else
@@ -15,6 +29,8 @@
       label="Category"
       outlined
     ></v-text-field>
+
+    <!-- Description -->
     <v-card-text>
       <div v-if="!editMode">{{ product.description }}</div>
       <v-textarea
@@ -23,6 +39,8 @@
         label="Description"
         outlined
       ></v-textarea>
+
+      <!-- Price -->
       <div class="mt-3">
         <strong>Price:</strong>
         <span v-if="!editMode">${{ product.price.toFixed(2) }}</span>
@@ -34,6 +52,8 @@
           outlined
         ></v-text-field>
       </div>
+
+      <!-- Rating -->
       <div>
         <strong>Rating:</strong>
         <span v-if="!editMode">{{ product.rating }} ⭐</span>
@@ -45,6 +65,8 @@
           outlined
         ></v-text-field>
       </div>
+
+      <!-- Stock -->
       <div>
         <strong>Stock:</strong>
         <span v-if="!editMode">{{ product.stock }}</span>
@@ -69,6 +91,7 @@
     </div>
   </v-card>
 </template>
+
 
 <script setup lang="ts">
 import { ref } from "vue";
