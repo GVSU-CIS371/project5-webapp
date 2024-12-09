@@ -15,12 +15,46 @@
         <strong>Stock:</strong> {{ product.stock }}
       </div>
     </v-card-text>
+
+    <!-- Delete Button -->
+    <v-btn color="red" @click="deleteProduct">Delete</v-btn>
   </v-card>
 </template>
 
 <script setup lang="ts">
 import { Product } from "../types/product";
+import { getFirestore, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
 
-defineProps<{ product: Product }>();
+// Define Props for Product
+const props = defineProps<{ product: Product }>();
+
+// Access the product object
+const product = props.product;
+
+// Function to handle the deletion of the product
+const deleteProduct = async () => {
+  const confirmation = window.confirm(`Are you sure you want to delete ${product.name}?`);
+  if (!confirmation) {
+    return;
+  }
+
+  const db = getFirestore();
+  const productsRef = collection(db, "products");
+
+  // Query Firestore to find the product by name
+  const q = query(productsRef, where("name", "==", product.name));
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    // Get the first document in case there are multiple products with the same name
+    const productDoc = snapshot.docs[0];
+
+    // Delete the product from Firestore by its document ID
+    await deleteDoc(productDoc.ref);
+    console.log(`Product ${product.name} deleted successfully.`);
+  } else {
+    console.log("Product not found.");
+  }
+  
+};
 </script>
-

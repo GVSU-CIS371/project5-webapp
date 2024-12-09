@@ -35,7 +35,6 @@
       <v-card>
         <v-card-title>Create New Product</v-card-title>
         <v-card-text>
-          <!-- Form Fields for New Product -->
           <v-text-field label="Product Name" v-model="newProduct.name" />
           <v-text-field label="Category" v-model="newProduct.category" />
           <v-text-field label="Price" v-model="newProduct.price" type="number" />
@@ -55,8 +54,9 @@
 </template>
 
 <script lang="ts" setup>
+import { useProductStore } from "./stores/ProductStore";
 import { ref } from "vue";
-import { useProductStore } from "./stores/ProductStore.ts"; // Ensure correct path
+import { getFirestore, collection, addDoc } from "firebase/firestore";
 
 const links = ref([
   { text: "Home", to: "/", icon: "mdi-home" },
@@ -66,53 +66,49 @@ const links = ref([
   { text: "Best Seller", to: "/bestseller", icon: "mdi-cash-register" },
 ]);
 
-// Dialog Visibility State
 const dialogVisible = ref(false);
 
-// New Product Fields
 const newProduct = ref({
-  name: "",
-  category: "",
-  price: 0,
-  stock: 0,
-  rating: 0,
-  description: "",
-  image: "",
+  name: "Beans",
+  description: "can of beans",
+  price: 5,
+  rating: 4,
+  stock: 10,
+  image: "https://www.recipetineats.com/tachyon/2014/05/Homemade-Heinz-Baked-Beans_0.jpg?resize=900%2C1260&zoom=0.72",
+  category: "groceries",
 });
 
-// Product Store Instance
-const productStore = useProductStore();
-
-// Methods for Dialog
 const openCreateDialog = () => {
   dialogVisible.value = true;
 };
 
+const saveProduct = async () => {
+  const confirmation = window.confirm("Are you sure you want to save this product?");
+  if (!confirmation) {
+    return;
+  }
+  const db = getFirestore();
+  const docRef = await addDoc(collection(db, "products"), newProduct.value);
+  const productStore = useProductStore();
+  await productStore.init();
+  console.log("Product saved with ID:", docRef.id);
+  productStore.products.push({
+      id: docRef.id,
+      data: newProduct.value,
+  });
+  closeDialog(); 
+  };
+
 const closeDialog = () => {
   dialogVisible.value = false;
-  resetForm();
-};
-
-const saveProduct = async () => {
-  try {
-    await productStore.addProduct(newProduct.value); // Call action to save in Firestore
-    console.log("Product saved successfully.");
-    closeDialog();
-  } catch (error) {
-    console.error("Error saving product:", error);
-  }
-};
-
-// Reset Form Fields
-const resetForm = () => {
   newProduct.value = {
-    name: "",
-    category: "",
-    price: 0,
-    stock: 0,
-    rating: 0,
-    description: "",
-    image: "",
+  name: "Beans",
+  description: "can of beans",
+  price: 5,
+  rating: 4,
+  stock: 10,
+  image: "https://www.recipetineats.com/tachyon/2014/05/Homemade-Heinz-Baked-Beans_0.jpg?resize=900%2C1260&zoom=0.72",
+  category: "groceries",
   };
 };
 </script>
