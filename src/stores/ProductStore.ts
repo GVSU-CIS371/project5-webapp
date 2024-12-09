@@ -25,6 +25,7 @@ export const useProductStore = defineStore("ProductStore", {
   }),
 
   actions: {
+    
     async init() {
       const productsCollection = collection(db, "products");
     
@@ -41,6 +42,9 @@ export const useProductStore = defineStore("ProductStore", {
           data: doc.data() as ProductDoc["data"],
         }));
       }
+    },
+    removeProduct(productToRemove: ProductDoc) {
+      this.products = this.products.filter(product => product.data.name !== productToRemove.data.name);
     },
 
     filterByCategory(category: string) {

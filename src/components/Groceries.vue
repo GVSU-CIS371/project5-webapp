@@ -11,9 +11,14 @@
 <script setup lang="ts">
 import { useProductStore } from "../stores/ProductStore";
 import StoreItem from "../components/StoreItem.vue";
+import { computed } from "vue";
 
 const productStore = useProductStore();
 
-const filteredProducts = productStore.filterByCategory("Groceries");
+// Make filteredProducts a computed property to reactively update when the store changes
+const filteredProducts = computed(() => {
+  return productStore.filterByCategory("Groceries");
+});
+
 </script>
 

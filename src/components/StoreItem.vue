@@ -1,60 +1,156 @@
 <template>
   <v-card class="ma-4" outlined>
     <v-img :src="product.image" alt="Product Image" height="200"></v-img>
-    <v-card-title>{{ product.name }}</v-card-title>
-    <v-card-subtitle>{{ product.category }}</v-card-subtitle>
+    <v-card-title v-if="!editMode">{{ product.name }}</v-card-title>
+    <v-text-field
+      v-else
+      v-model="editedProduct.name"
+      label="Product Name"
+      outlined
+    ></v-text-field>
+    <v-card-subtitle v-if="!editMode">{{ product.category }}</v-card-subtitle>
+    <v-text-field
+      v-else
+      v-model="editedProduct.category"
+      label="Category"
+      outlined
+    ></v-text-field>
     <v-card-text>
-      <div>{{ product.description }}</div>
+      <div v-if="!editMode">{{ product.description }}</div>
+      <v-textarea
+        v-else
+        v-model="editedProduct.description"
+        label="Description"
+        outlined
+      ></v-textarea>
       <div class="mt-3">
-        <strong>Price:</strong> ${{ product.price.toFixed(2) }}
+        <strong>Price:</strong>
+        <span v-if="!editMode">${{ product.price.toFixed(2) }}</span>
+        <v-text-field
+          v-else
+          v-model="editedProduct.price"
+          label="Price"
+          type="number"
+          outlined
+        ></v-text-field>
       </div>
       <div>
-        <strong>Rating:</strong> {{ product.rating }} ⭐
+        <strong>Rating:</strong>
+        <span v-if="!editMode">{{ product.rating }} ⭐</span>
+        <v-text-field
+          v-else
+          v-model="editedProduct.rating"
+          label="Rating"
+          type="number"
+          outlined
+        ></v-text-field>
       </div>
       <div>
-        <strong>Stock:</strong> {{ product.stock }}
+        <strong>Stock:</strong>
+        <span v-if="!editMode">{{ product.stock }}</span>
+        <v-text-field
+          v-else
+          v-model="editedProduct.stock"
+          label="Stock"
+          type="number"
+          outlined
+        ></v-text-field>
       </div>
     </v-card-text>
 
-    <!-- Delete Button -->
-    <v-btn color="red" @click="deleteProduct">Delete</v-btn>
+    <!-- Action Buttons -->
+    <div v-if="!editMode">
+      <v-btn color="red" @click="deleteProduct">Delete</v-btn>
+      <v-btn color="blue" @click="enterEditMode">Modify</v-btn>
+    </div>
+    <div v-else>
+      <v-btn color="green" @click="updateProduct">Update</v-btn>
+      <v-btn color="grey" @click="cancelEdit">Cancel</v-btn>
+    </div>
   </v-card>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { Product } from "../types/product";
-import { getFirestore, collection, query, where, getDocs, deleteDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { useProductStore } from "../stores/ProductStore";
 
 // Define Props for Product
 const props = defineProps<{ product: Product }>();
 
-// Access the product object
-const product = props.product;
+// Reactive State
+const editMode = ref(false);
+const editedProduct = ref({ ...props.product });
+const productStore = useProductStore();
 
-// Function to handle the deletion of the product
+// Firestore Functions
 const deleteProduct = async () => {
-  const confirmation = window.confirm(`Are you sure you want to delete ${product.name}?`);
-  if (!confirmation) {
-    return;
-  }
+  const confirmation = window.confirm(
+    `Are you sure you want to delete ${props.product.name}?`
+  );
+  if (!confirmation) return;
 
   const db = getFirestore();
   const productsRef = collection(db, "products");
 
-  // Query Firestore to find the product by name
-  const q = query(productsRef, where("name", "==", product.name));
+  const q = query(productsRef, where("name", "==", props.product.name));
   const snapshot = await getDocs(q);
 
   if (!snapshot.empty) {
-    // Get the first document in case there are multiple products with the same name
     const productDoc = snapshot.docs[0];
-
-    // Delete the product from Firestore by its document ID
     await deleteDoc(productDoc.ref);
-    console.log(`Product ${product.name} deleted successfully.`);
+
+    // Update the product store
+    productStore.removeProduct({
+      id: productDoc.id,
+      data: props.product,
+    });
+
+    console.log(`Product ${props.product.name} deleted successfully.`);
   } else {
     console.log("Product not found.");
   }
-  
+};
+
+const enterEditMode = () => {
+  editMode.value = true;
+};
+
+const cancelEdit = () => {
+  editMode.value = false;
+  editedProduct.value = { ...props.product };
+};
+
+const updateProduct = async () => {
+  const confirmation = window.confirm(
+    `Are you sure you want to update ${props.product.name}?`
+  );
+  if (!confirmation) return;
+
+  const db = getFirestore();
+  const productsRef = collection(db, "products");
+
+  const q = query(productsRef, where("name", "==", props.product.name));
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    const productDoc = snapshot.docs[0];
+    await updateDoc(productDoc.ref, { ...editedProduct.value });
+
+    Object.assign(props.product, editedProduct.value);
+    console.log(`Product ${props.product.name} updated successfully.`);
+    editMode.value = false;
+  } else {
+    console.log("Product not found for update.");
+  }
 };
 </script>

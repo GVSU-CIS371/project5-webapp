@@ -75,7 +75,7 @@ const newProduct = ref({
   rating: 4,
   stock: 10,
   image: "https://www.recipetineats.com/tachyon/2014/05/Homemade-Heinz-Baked-Beans_0.jpg?resize=900%2C1260&zoom=0.72",
-  category: "groceries",
+  category: "Groceries",
 });
 
 const openCreateDialog = () => {
@@ -92,10 +92,6 @@ const saveProduct = async () => {
   const productStore = useProductStore();
   await productStore.init();
   console.log("Product saved with ID:", docRef.id);
-  productStore.products.push({
-      id: docRef.id,
-      data: newProduct.value,
-  });
   closeDialog(); 
   };
 
@@ -108,7 +104,7 @@ const closeDialog = () => {
   rating: 4,
   stock: 10,
   image: "https://www.recipetineats.com/tachyon/2014/05/Homemade-Heinz-Baked-Beans_0.jpg?resize=900%2C1260&zoom=0.72",
-  category: "groceries",
+  category: "Groceries",
   };
 };
 </script>

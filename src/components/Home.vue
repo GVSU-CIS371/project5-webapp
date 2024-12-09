@@ -9,12 +9,16 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useProductStore } from "../stores/ProductStore";
 import StoreItem from "./StoreItem.vue";
 
+// Access the product store
 const productStore = useProductStore();
+
+// Initialize the store (fetches products)
 productStore.init();
 
-const products = productStore.products;
+// Make products reactive
+const products = computed(() => productStore.products);
 </script>
-

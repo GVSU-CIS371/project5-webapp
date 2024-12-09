@@ -11,9 +11,12 @@
 <script setup lang="ts">
 import { useProductStore } from "../stores/ProductStore";
 import StoreItem from "../components/StoreItem.vue";
+import { computed } from "vue";
 
 const productStore = useProductStore();
 
-const filteredProducts = productStore.filterByCategory("Clothing");
+const filteredProducts = computed(() => {
+  return productStore.filterByCategory("Clothing");
+});
 </script>
 
